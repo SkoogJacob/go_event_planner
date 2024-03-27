@@ -1,2 +1,4 @@
 .idea/
+data/
+venv/
 event_planner_api
