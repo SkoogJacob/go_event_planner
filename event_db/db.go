@@ -67,9 +67,8 @@ func InitDb(path string) {
 func createTables() {
 	createUsersTable := fmt.Sprintf(`
 		CREATE TABLE IF NOT EXISTS %s (
-			id INTEGER PRIMARY KEY AUTOINCREMENT
-			name TEXT NOT NULL
-			email TEXT NOT NULL UNIQUE
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			email TEXT NOT NULL UNIQUE,
 			password TEXT NOT NULL
 		);`, USERS_TABLE_NAME)
 	_, err := DB.Exec(createUsersTable)
