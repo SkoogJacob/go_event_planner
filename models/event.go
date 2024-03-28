@@ -51,7 +51,7 @@ func GetEvent(id int64) (Event, error) {
 
 // GetEvents gets all the events saved in the database
 func GetEvents() ([]Event, error) {
-	query := fmt.Sprintf("SELECT * FROM %s", event_db.TABLE_NAME)
+	query := fmt.Sprintf("SELECT * FROM %s", event_db.EVENTS_TABLE_NAME)
 	rows, err := event_db.DB.Query(query)
 	if err != nil {
 		return nil, err

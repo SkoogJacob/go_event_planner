@@ -8,7 +8,8 @@ import (
 	"strings"
 )
 
-const TABLE_NAME = "events"
+const EVENTS_TABLE_NAME = "events"
+const USERS_TABLE_NAME = "users"
 
 var DB *sql.DB
 var InsertStmt *sql.Stmt
@@ -26,7 +27,7 @@ func InitDb(path string) {
 	DB.SetMaxIdleConns(5)
 	createTables()
 
-	toPrepare := fmt.Sprintf("SELECT * FROM %s WHERE id=?", TABLE_NAME)
+	toPrepare := fmt.Sprintf("SELECT * FROM %s WHERE id=?", EVENTS_TABLE_NAME)
 	stmt, err := DB.Prepare(toPrepare)
 	if err != nil {
 		log.Fatalf("Unable to prepare get event query: %s\n", err)
@@ -35,7 +36,7 @@ func InitDb(path string) {
 
 	toPrepare = fmt.Sprintf(
 		"INSERT INTO %s (name, description, location, date_time, user_id) VALUES (?, ?, ?, ?, ?)",
-		TABLE_NAME)
+		EVENTS_TABLE_NAME)
 	stmt, err = DB.Prepare(toPrepare)
 	if err != nil {
 		log.Fatalf("Unable to prepare insert event query: %s\n", err)
@@ -46,7 +47,7 @@ func InitDb(path string) {
 		UPDATE %s
 		SET name = ?, description = ?, location = ?, date_time = ?
 		WHERE id = ?
-		`, TABLE_NAME))
+		`, EVENTS_TABLE_NAME))
 	stmt, err = DB.Prepare(toPrepare)
 	if err != nil {
 		log.Fatalf("Unable to prepare update event query: %s\n", err)
@@ -55,7 +56,7 @@ func InitDb(path string) {
 
 	toPrepare = strings.TrimSpace(fmt.Sprintf(`
 		DELETE FROM %s WHERE id = ?
-		`, TABLE_NAME))
+		`, EVENTS_TABLE_NAME))
 	stmt, err = DB.Prepare(toPrepare)
 	if err != nil {
 		log.Fatalf("Unable to prepare delete event query: %s\n", err)
@@ -64,6 +65,18 @@ func InitDb(path string) {
 }
 
 func createTables() {
+	createUsersTable := fmt.Sprintf(`
+		CREATE TABLE IF NOT EXISTS %s (
+			id INTEGER PRIMARY KEY AUTOINCREMENT
+			name TEXT NOT NULL
+			email TEXT NOT NULL UNIQUE
+			password TEXT NOT NULL
+		);`, USERS_TABLE_NAME)
+	_, err := DB.Exec(createUsersTable)
+	if err != nil {
+		log.Fatalf("Unable to create users table in SQLite: %s\n", err)
+	}
+
 	createEventsTable := fmt.Sprintf(`
 		CREATE TABLE IF NOT EXISTS %s (
 		    id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -71,9 +84,10 @@ func createTables() {
 		    description TEXT NOT NULL,
 		    location TEXT NOT NULL,
 		    date_time DATETIME NOT NULL,
-		    user_id INTEGER
-		);`, TABLE_NAME)
-	_, err := DB.Exec(createEventsTable)
+		    user_id INTEGER,
+			FOREIGN KEY(user_id) REFERENCES %s(id)
+		);`, EVENTS_TABLE_NAME, USERS_TABLE_NAME)
+	_, err = DB.Exec(createEventsTable)
 	if err != nil {
 		log.Fatalf("Unable to create events table in SQLite: %s\n", err)
 	}
