@@ -81,6 +81,11 @@ func (e *Event) UpdateEvent() error {
 	return err
 }
 
+func (e *Event) Delete() error {
+	_, err := event_db.DeleteEventStmt.Exec(e.ID)
+	return err
+}
+
 func scanEvent(event *Event, row *sql.Row) error {
 	return row.Scan(&event.ID, &event.Name, &event.Description, &event.Location, &event.DateTime, &event.UserID)
 }

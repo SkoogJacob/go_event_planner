@@ -71,9 +71,6 @@ func postEvent(ctx *gin.Context) {
 func updateEvent(ctx *gin.Context) {
 	id, err := getIdParam(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": "passed bad id in the url, must be a positive number",
-		})
 		return
 	}
 	event, err := models.GetEvent(id)
@@ -134,5 +131,18 @@ func updateEvent(ctx *gin.Context) {
 }
 
 func deleteEvent(ctx *gin.Context) {
-
+	id, err := getIdParam(ctx)
+	if err != nil {
+		return
+	}
+	event, err := models.GetEvent(id)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "could not get event from db"})
+	}
+	err = event.Delete()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "delete failed"})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"message": "event was deleted"})
 }

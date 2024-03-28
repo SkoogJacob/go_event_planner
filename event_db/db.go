@@ -14,6 +14,7 @@ var DB *sql.DB
 var InsertStmt *sql.Stmt
 var GetEventWithIdStmt *sql.Stmt
 var UpdateEventStmt *sql.Stmt
+var DeleteEventStmt *sql.Stmt
 
 func InitDb(path string) {
 	dB, dbErr := sql.Open("sqlite3", path)
@@ -51,6 +52,15 @@ func InitDb(path string) {
 		log.Fatalf("Unable to prepare update event query: %s\n", err)
 	}
 	UpdateEventStmt = stmt
+
+	toPrepare = strings.TrimSpace(fmt.Sprintf(`
+		DELETE FROM %s WHERE id = ?
+		`, TABLE_NAME))
+	stmt, err = DB.Prepare(toPrepare)
+	if err != nil {
+		log.Fatalf("Unable to prepare delete event query: %s\n", err)
+	}
+	DeleteEventStmt = stmt
 }
 
 func createTables() {
@@ -73,6 +83,7 @@ func CloseDb() {
 	_ = InsertStmt.Close()
 	_ = GetEventWithIdStmt.Close()
 	_ = UpdateEventStmt.Close()
+	_ = DeleteEventStmt.Close()
 	err := DB.Close()
 	if err != nil {
 		log.Fatalf("Failed to close DB: %s", err)
