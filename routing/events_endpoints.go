@@ -2,8 +2,9 @@ package routing
 
 import (
 	"event_planner_api/models"
-	"log"
 	"net/http"
+	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -79,13 +80,57 @@ func updateEvent(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"message": "unable to get the event",
-			"error":   err,
 		})
+		return
 	}
-	update := make(map[string]interface{}, 5)
-	ctx.ShouldBindJSON(update)
-	log.Println(update, "\n", event)
-	ctx.JSON(200, gin.H{"message": "under development"})
+	update := make(map[string]string, 4)
+	err = ctx.ShouldBindJSON(&update)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "unable to parse data as json"})
+		return
+	}
+	var changes = 0
+	if len(strings.TrimSpace(update["name"])) > 0 {
+		event.Name = strings.TrimSpace(update["name"])
+		changes++
+	}
+	if len(strings.TrimSpace(update["description"])) > 0 {
+		event.Description = strings.TrimSpace(update["description"])
+		changes++
+	}
+	if len(strings.TrimSpace(update["location"])) > 0 {
+		event.Description = strings.TrimSpace(update["location"])
+		changes++
+	}
+	if len(strings.TrimSpace(update["date_time"])) > 0 {
+		date := strings.TrimSpace(update["date_time"])
+		var dateTime time.Time
+		dateTime, err = time.Parse(time.RFC3339, date)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"message": "date_time field could not be parsed",
+				"error":   err,
+			})
+			return
+		}
+		event.DateTime = dateTime
+		changes++
+	}
+	if changes == 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"message": "The data submitted would not result in any changes",
+		})
+		return
+	}
+	err = event.UpdateEvent()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "error occurred when attempting to update event"})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": "event was successfully updated",
+		"event":   event,
+	})
 }
 
 func deleteEvent(ctx *gin.Context) {

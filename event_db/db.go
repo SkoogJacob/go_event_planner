@@ -5,6 +5,7 @@ import (
 	"fmt"
 	_ "github.com/mattn/go-sqlite3"
 	"log"
+	"strings"
 )
 
 const TABLE_NAME = "events"
@@ -12,6 +13,7 @@ const TABLE_NAME = "events"
 var DB *sql.DB
 var InsertStmt *sql.Stmt
 var GetEventWithIdStmt *sql.Stmt
+var UpdateEventStmt *sql.Stmt
 
 func InitDb(path string) {
 	dB, dbErr := sql.Open("sqlite3", path)
@@ -38,6 +40,17 @@ func InitDb(path string) {
 		log.Fatalf("Unable to prepare insert event query: %s\n", err)
 	}
 	InsertStmt = stmt
+
+	toPrepare = strings.TrimSpace(fmt.Sprintf(`
+		UPDATE %s
+		SET name = ?, description = ?, location = ?, date_time = ?
+		WHERE id = ?
+		`, TABLE_NAME))
+	stmt, err = DB.Prepare(toPrepare)
+	if err != nil {
+		log.Fatalf("Unable to prepare update event query: %s\n", err)
+	}
+	UpdateEventStmt = stmt
 }
 
 func createTables() {
@@ -59,6 +72,7 @@ func createTables() {
 func CloseDb() {
 	_ = InsertStmt.Close()
 	_ = GetEventWithIdStmt.Close()
+	_ = UpdateEventStmt.Close()
 	err := DB.Close()
 	if err != nil {
 		log.Fatalf("Failed to close DB: %s", err)

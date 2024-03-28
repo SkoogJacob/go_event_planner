@@ -28,7 +28,7 @@ type Event struct {
 	Description string    `json:"description" binding:"required"`
 	Location    string    `json:"location" binding:"required"`
 	DateTime    time.Time `json:"date_time" binding:"required"`
-	UserID      uint      `json:"user_id"`
+	UserID      int64     `json:"user_id"`
 }
 
 // Save Saves the Event to the database
@@ -76,6 +76,11 @@ func GetEvents() ([]Event, error) {
 	return events, nil
 }
 
+func (e *Event) UpdateEvent() error {
+	_, err := event_db.UpdateEventStmt.Exec(e.Name, e.Description, e.Location, e.DateTime, e.ID)
+	return err
+}
+
 func scanEvent(event *Event, row *sql.Row) error {
-	return row.Scan(event.ID, event.Name, event.Description, event.Location, event.DateTime, event.UserID)
+	return row.Scan(&event.ID, &event.Name, &event.Description, &event.Location, &event.DateTime, &event.UserID)
 }
