@@ -24,8 +24,9 @@ The routes below require authentication acquired from the `/api/login` endpoint.
 - `POST <api_root>/events/<id>/register`    Registers the logged in user to attend the event.
 - `DELETE <api_root>/events/<id>/register`  Deletes registration for the logged in user for the event
 
-For all the endpoints, the `<id>` segment signifies the ID for the event in the system which can be
-viewed in the payload from calling the `GET <api_root>/events/` endpoint.
+For all the endpoints, the `<id>` segment signifies the ID for an event
+stored in the system database. These IDS can be viewed in the payload
+by calling the `GET <api_root>/events/` endpoint.
 
 ## Authentication
 
