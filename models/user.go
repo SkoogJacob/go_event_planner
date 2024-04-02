@@ -3,8 +3,8 @@ package models
 import (
 	"database/sql"
 	"errors"
+	"event_planner_api/authentication"
 	"event_planner_api/event_db"
-	"event_planner_api/hashing"
 	"fmt"
 	"log"
 )
@@ -27,7 +27,7 @@ func (u *User) Save() error {
 			log.Printf("Failed to close insert user statement: %s\n", err)
 		}
 	}(stmt)
-	password, err := hashing.HashPassword(u.Password)
+	password, err := authentication.HashPassword(u.Password)
 	if err != nil {
 		return err
 	}
@@ -41,11 +41,11 @@ func (u *User) Save() error {
 	return err
 }
 
-func (u *User) Login() (bool, error) {
-	query := fmt.Sprintf("SELECT password FROM %s WHERE email=?", event_db.USERS_TABLE_NAME)
+func (u *User) Login() error {
+	query := fmt.Sprintf("SELECT id, password FROM %s WHERE email=?", event_db.USERS_TABLE_NAME)
 	stmt, err := event_db.DB.Prepare(query)
 	if err != nil {
-		return false, err
+		return err
 	}
 	defer func(stmt *sql.Stmt) {
 		err := stmt.Close()
@@ -56,10 +56,13 @@ func (u *User) Login() (bool, error) {
 
 	row := stmt.QueryRow(u.Email)
 	var toCompare string
-	err = row.Scan(&toCompare)
+	err = row.Scan(&u.ID, &toCompare)
 	if err != nil {
-		return false, err
+		return err
 	}
-	matches := hashing.ComparePlainToHashed(u.Password, toCompare)
-	return matches, errors.New("the password did not match")
+	matches := authentication.ComparePlainToHashed(u.Password, toCompare)
+	if matches {
+		return nil
+	}
+	return errors.New("the password did not match")
 }
