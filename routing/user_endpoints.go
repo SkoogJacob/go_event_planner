@@ -51,7 +51,12 @@ func registerUser(c *gin.Context) {
 		log.Printf("Error in attempting to save user to database: %v\n", err)
 		return
 	}
+	token, err := authentication.GenerateToken(user.Email, user.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "user was created successfully, but the server failed to generate an auth token"})
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"message": "successfully created user",
+		"token":   token,
 	})
 }
