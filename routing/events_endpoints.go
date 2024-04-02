@@ -54,6 +54,7 @@ func postEvent(ctx *gin.Context) {
 		})
 		return
 	}
+	event.UserID = ctx.GetInt64("user_id")
 	err = event.Save()
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
@@ -78,6 +79,11 @@ func updateEvent(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"message": "unable to get the event",
 		})
+		return
+	}
+	requestUserId := ctx.GetInt64("user_id")
+	if requestUserId != event.UserID {
+		ctx.JSON(http.StatusForbidden, gin.H{"message": "only the event creator may edit the event"})
 		return
 	}
 	update := make(map[string]string, 4)
@@ -138,6 +144,11 @@ func deleteEvent(ctx *gin.Context) {
 	event, err := models.GetEvent(id)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "could not get event from db"})
+	}
+	userId := ctx.GetInt64("user_id")
+	if userId != event.UserID {
+		ctx.JSON(http.StatusForbidden, gin.H{"message": "only the event creator may delete the event"})
+		return
 	}
 	err = event.Delete()
 	if err != nil {

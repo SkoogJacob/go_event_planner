@@ -8,14 +8,6 @@ import (
 	"net/http"
 )
 
-func unregisterUserForEvent(c *gin.Context) {
-
-}
-
-func registerUserForEvent(c *gin.Context) {
-
-}
-
 func loginUser(c *gin.Context) {
 	var user models.User
 	err := c.ShouldBindJSON(&user)

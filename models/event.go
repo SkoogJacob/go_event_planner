@@ -86,6 +86,39 @@ func (e *Event) Delete() error {
 	return err
 }
 
+func (e *Event) Register(userId int64) error {
+	query := fmt.Sprintf("INSERT INTO %s(event_id, user_id) VALUES (?, ?)",
+		event_db.REGISTRATIONS_TABLE_NAME)
+	stmt, err := event_db.DB.Prepare(query)
+	if err != nil {
+		return err
+	}
+	defer func(stmt *sql.Stmt) {
+		err := stmt.Close()
+		if err != nil {
+			log.Printf("error closing insert registration statement: %s\n", err)
+		}
+	}(stmt)
+	_, err = stmt.Exec(e.ID, userId)
+	return err
+}
+
+func (e *Event) DeRegister(userId int64) error {
+	query := fmt.Sprintf("DELETE FROM %s WHERE event_id = ? AND user_id = ?", event_db.REGISTRATIONS_TABLE_NAME)
+	stmt, err := event_db.DB.Prepare(query)
+	if err != nil {
+		return err
+	}
+	defer func(stmt *sql.Stmt) {
+		err := stmt.Close()
+		if err != nil {
+			log.Printf("error closing delete registration statement: %s\n", err)
+		}
+	}(stmt)
+	_, err = stmt.Exec(e.ID, userId)
+	return err
+}
+
 func scanEvent(event *Event, row *sql.Row) error {
 	return row.Scan(&event.ID, &event.Name, &event.Description, &event.Location, &event.DateTime, &event.UserID)
 }

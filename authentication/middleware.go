@@ -12,10 +12,14 @@ func AuthenticateByToken(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "not authorized"})
 		return
 	}
-	_, err := VerifyToken(token)
+	_, userId, err := VerifyToken(token)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "unauthorized, bad token"})
 		log.Printf("Error verifying token: %v\n", err)
 		return
 	}
+
+	c.Set("user_id", userId)
+
+	c.Next()
 }

@@ -10,6 +10,7 @@ import (
 
 const EVENTS_TABLE_NAME = "events"
 const USERS_TABLE_NAME = "users"
+const REGISTRATIONS_TABLE_NAME = "registrations"
 
 var DB *sql.DB
 var InsertStmt *sql.Stmt
@@ -89,6 +90,19 @@ func createTables() {
 	_, err = DB.Exec(createEventsTable)
 	if err != nil {
 		log.Fatalf("Unable to create events table in SQLite: %s\n", err)
+	}
+
+	createRegistrationsTable := fmt.Sprintf(`
+		CREATE TABLE IF NOT EXISTS %s (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			event_id INTEGER,
+			user_id INTEGER,
+			FOREIGN KEY(event_id) REFERENCES %s(id),
+			FOREIGN KEY(user_id) REFERENCES %s(id)
+);`, REGISTRATIONS_TABLE_NAME, EVENTS_TABLE_NAME, USERS_TABLE_NAME)
+	_, err = DB.Exec(createRegistrationsTable)
+	if err != nil {
+		log.Fatalf("Unable to create registrations table in SQLite: %s\n", err)
 	}
 }
 
