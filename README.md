@@ -14,7 +14,10 @@ is `http://<host_address>/api`. The endpoints are:
 - `GET <api_root>/events/`                  Gets all the stored events in the system
 - `POST <api_root>/events/`                 Creates a new event. Requires authentication.
 - `POST <api_root>/signup/`                 Creates a new user.
-- `POST <api_root>/login`                   Logs in using email+password
+- `POST <api_root>/login`                   Logs in using email+password. The response will contain a JWT token for
+                                            authentication.
+
+The routes below require authentication acquired from the `/api/login` endpoint.
 - `GET <api_root>/events/<id>`              Gets information pertaining to a specific event
 - `PUT <api_root>/events/<id>`              Updates the information for an event. Only permitted for the event creator.
 - `DELETE <api_root>/events/<id>`           Deletes the event from the system. Only permitted for the event creator.
